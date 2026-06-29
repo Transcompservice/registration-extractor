@@ -5,16 +5,22 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const PROMPT = `Extract the following fields from this vehicle registration document.
 Different U.S. states use different label names — use your best judgment.
 
+Examples of state label variations:
+- Pennsylvania: PLATE, TITLE, VIN, YR/MAKE, REG. GROSS WT, COMB. GROSS WT, EXPIRY
+- Maryland: PLATE NO, TITLE NO, VIN, YEAR, MAKE, GR VEHICLE WT, GR COMB WT, EXPIRES
+- Texas: LICENSE PLATE, TITLE NUMBER, VIN, YEAR, MAKE, GVWR, GCWR, EXPIRATION DATE
+
 Return ONLY a valid JSON object with these exact keys (null if not found):
 
 {
-  "year": "4-digit model year (e.g. 2019)",
-  "make": "vehicle manufacturer (e.g. FORD, FREIGHTLINER, KENWORTH)",
+  "plate": "license plate number",
+  "year": "4-digit model year (e.g. 2019) — look for YR/MAKE and extract just the year",
+  "make": "vehicle manufacturer (e.g. FORD, FREIGHTLINER) — look for YR/MAKE and extract just the make",
   "vin": "17-character Vehicle Identification Number",
-  "gross_vehicle_weight": "Gross Vehicle Weight — look for: GVW, GVWR, GR VEHICLE WT, GROSS WT",
-  "gross_combined_weight": "Gross Combined Weight — look for: GCW, GCWR, GR COMB WT, GROSS COMB",
-  "title_number": "title number or certificate number",
-  "expiration_date": "registration expiration date formatted MM/DD/YYYY",
+  "gross_vehicle_weight": "Gross Vehicle Weight — look for: GVW, GVWR, GR VEHICLE WT, REG. GROSS WT, GROSS WT",
+  "gross_combined_weight": "Gross Combined Weight — look for: GCW, GCWR, GR COMB WT, COMB. GROSS WT",
+  "title_number": "title number or certificate number — look for: TITLE, TITLE NO, TITLE NUMBER",
+  "expiration_date": "registration expiration date formatted MM/DD/YYYY — look for: EXPIRY, EXPIRES, EXPIRATION",
   "state": "2-letter state abbreviation if visible (e.g. MD, TX, PA)"
 }
 

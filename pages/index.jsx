@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 
 const COLS = [
+  { key: 'plate', label: 'Plate' },
   { key: 'year', label: 'Year' },
   { key: 'make', label: 'Make' },
   { key: 'vin', label: 'VIN' },
@@ -94,7 +95,6 @@ export default function Home() {
         <h1 style={s.h1}>Vehicle Registration Extractor</h1>
         <p style={s.sub}>Upload scanned registrations — Claude AI reads the fields and sends them to your Google Sheet.</p>
 
-        {/* Drop zone */}
         <div
           style={{ ...s.dropzone, ...(dragging ? s.dropzoneActive : {}) }}
           onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -115,7 +115,6 @@ export default function Home() {
           />
         </div>
 
-        {/* File list */}
         {files.length > 0 && (
           <div style={s.fileList}>
             {files.map((f, i) => (
@@ -128,7 +127,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Buttons */}
         <div style={s.btnRow}>
           <button
             style={{ ...s.btn, ...s.btnBlue, ...((!files.length || processing) ? s.btnDisabled : {}) }}
@@ -155,14 +153,12 @@ export default function Home() {
           )}
         </div>
 
-        {/* Status */}
         {status && (
           <div style={{ ...s.statusBox, ...(status.startsWith('Error') ? s.statusError : s.statusOk) }}>
             {status}
           </div>
         )}
 
-        {/* Results table */}
         {results.length > 0 && (
           <div style={s.tableWrap}>
             <table style={s.table}>
