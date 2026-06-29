@@ -30,21 +30,6 @@ export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
 };
 
-function extractJson(text) {
-  // Find the first { and track matching braces to find the complete JSON object
-  const start = text.indexOf('{');
-  if (start === -1) throw new Error('No JSON object found in response');
-  let depth = 0;
-  for (let i = start; i < text.length; i++) {
-    if (text[i] === '{') depth++;
-    else if (text[i] === '}') {
-      depth--;
-      if (depth === 0) return text.slice(start, i + 1);
-    }
-  }
-  throw new Error('Incomplete JSON in response');
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -68,10 +53,11 @@ export default async function handler(req, res) {
     });
 
     const raw = response.content[0].text.trim();
-    const json = extractJson(raw);
-    return res.json(JSON.parse(json));
+    console.log('[extract raw]', JSON.stringify(raw));
+
+    return res.json(JSON.parse(raw));
   } catch (err) {
-    console.error('[extract]', err);
+    console.error('[extract error]', err.message);
     return res.status(500).json({ error: err.message });
   }
 }
