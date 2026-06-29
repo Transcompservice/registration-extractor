@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 
 const COLS = [
   { key: 'unit_number', label: 'Unit #' },
+  { key: 'type', label: 'Type' },
   { key: 'plate', label: 'Plate' },
   { key: 'year', label: 'Year' },
   { key: 'make', label: 'Make' },
@@ -35,7 +36,6 @@ export default function Home() {
   };
 
   const removeFile = (i) => setFiles(prev => prev.filter((_, idx) => idx !== i));
-
   const clear = () => { setFiles([]); setResults([]); setStatus(''); setSaved(false); };
 
   const processFiles = async () => {
