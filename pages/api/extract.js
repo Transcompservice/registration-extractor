@@ -12,6 +12,7 @@ const TOOL = {
   input_schema: {
     type: "object",
     properties: {
+      unit_number:           { type: ["string","null"], description: "Unit number or fleet number printed on the document" },
       plate:                 { type: ["string","null"], description: "License plate number" },
       year:                  { type: ["string","null"], description: "4-digit model year" },
       make:                  { type: ["string","null"], description: "Vehicle manufacturer e.g. FORD, FREIGHTLINER" },
@@ -22,7 +23,7 @@ const TOOL = {
       expiration_date:       { type: ["string","null"], description: "Expiration date MM/DD/YYYY" },
       state:                 { type: ["string","null"], description: "2-letter state abbreviation e.g. MD, PA, TX" },
     },
-    required: ["plate","year","make","vin","gross_vehicle_weight","gross_combined_weight","title_number","expiration_date","state"],
+    required: ["unit_number","plate","year","make","vin","gross_vehicle_weight","gross_combined_weight","title_number","expiration_date","state"],
   },
 };
 

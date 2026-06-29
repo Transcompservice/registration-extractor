@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 
 const COLS = [
+  { key: 'unit_number', label: 'Unit #' },
   { key: 'plate', label: 'Plate' },
   { key: 'year', label: 'Year' },
   { key: 'make', label: 'Make' },
@@ -203,7 +204,7 @@ function toBase64(file) {
 
 const s = {
   page: { minHeight: '100vh', background: '#f8fafc', padding: '2rem 1rem', fontFamily: 'system-ui, -apple-system, sans-serif' },
-  card: { maxWidth: 960, margin: '0 auto', background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', padding: '2rem' },
+  card: { maxWidth: 1100, margin: '0 auto', background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', padding: '2rem' },
   h1: { margin: '0 0 0.25rem', fontSize: '1.6rem', fontWeight: 700, color: '#0f172a' },
   sub: { margin: '0 0 1.5rem', color: '#64748b', fontSize: '0.95rem' },
   dropzone: { border: '2px dashed #cbd5e1', borderRadius: 10, padding: '2.5rem 1rem', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s', marginBottom: '1rem', background: '#f8fafc' },
