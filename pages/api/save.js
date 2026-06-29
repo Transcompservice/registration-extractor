@@ -49,3 +49,12 @@ export default async function handler(req, res) {
       range: `${sheetName}!A1`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
+      requestBody: { values: rows },
+    });
+
+    return res.json({ count: records.length });
+  } catch (err) {
+    console.error('[save]', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
