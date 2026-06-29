@@ -24,11 +24,26 @@ Return ONLY a valid JSON object with these exact keys (null if not found):
   "state": "2-letter state abbreviation if visible (e.g. MD, TX, PA)"
 }
 
-Do not guess. Only extract what is clearly printed on the document.`;
+Do not include any text before or after the JSON object. No explanations, no notes.`;
 
 export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
 };
+
+function extractJson(text) {
+  // Find the first { and track matching braces to find the complete JSON object
+  const start = text.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found in response');
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === '{') depth++;
+    else if (text[i] === '}') {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  throw new Error('Incomplete JSON in response');
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -48,25 +63,13 @@ export default async function handler(req, res) {
 
     const response = await client.messages.create({
       model: 'claude-opus-4-5',
-      max_tokens: 600,
+      max_tokens: 800,
       messages: [{ role: 'user', content: [fileBlock, { type: 'text', text: PROMPT }] }],
     });
 
-    let text = response.content[0].text.trim();
-
-    // Strip markdown code fences if present
-    if (text.startsWith('```')) {
-      const lines = text.split('\n');
-      const end = lines[lines.length - 1].trim() === '```' ? lines.length - 1 : lines.length;
-      text = lines.slice(1, end).join('\n');
-    }
-
-    // Extract just the JSON object even if there is extra text around it
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No JSON found in response');
-    text = jsonMatch[0];
-
-    return res.json(JSON.parse(text));
+    const raw = response.content[0].text.trim();
+    const json = extractJson(raw);
+    return res.json(JSON.parse(json));
   } catch (err) {
     console.error('[extract]', err);
     return res.status(500).json({ error: err.message });
