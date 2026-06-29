@@ -10,31 +10,51 @@ Examples of state label variations:
 - Maryland: PLATE NO, TITLE NO, VIN, YEAR, MAKE, GR VEHICLE WT, GR COMB WT, EXPIRES
 - Texas: LICENSE PLATE, TITLE NUMBER, VIN, YEAR, MAKE, GVWR, GCWR, EXPIRATION DATE
 
-Return ONLY a valid JSON object with these exact keys (null if not found):
+Return ONLY a valid JSON object with these exact keys (use null if not found):
 
 {
-  "plate": "license plate number",
-  "year": "4-digit model year (e.g. 2019) — look for YR/MAKE and extract just the year",
-  "make": "vehicle manufacturer (e.g. FORD, FREIGHTLINER) — look for YR/MAKE and extract just the make",
-  "vin": "17-character Vehicle Identification Number",
-  "gross_vehicle_weight": "Gross Vehicle Weight — look for: GVW, GVWR, GR VEHICLE WT, REG. GROSS WT, GROSS WT",
-  "gross_combined_weight": "Gross Combined Weight — look for: GCW, GCWR, GR COMB WT, COMB. GROSS WT",
-  "title_number": "title number or certificate number — look for: TITLE, TITLE NO, TITLE NUMBER",
-  "expiration_date": "registration expiration date formatted MM/DD/YYYY — look for: EXPIRY, EXPIRES, EXPIRATION",
-  "state": "2-letter state abbreviation if visible (e.g. MD, TX, PA)"
+  "plate": null,
+  "year": null,
+  "make": null,
+  "vin": null,
+  "gross_vehicle_weight": null,
+  "gross_combined_weight": null,
+  "title_number": null,
+  "expiration_date": null,
+  "state": null
 }
 
-Do not include any text before or after the JSON object. No explanations, no notes.`;
+No text before or after the JSON. No markdown fences. No explanations.`;
 
 export const config = {
   api: { bodyParser: { sizeLimit: '20mb' } },
 };
 
+function extractJson(text) {
+  const start = text.indexOf('{');
+  if (start === -1) throw new Error('No JSON object found in response');
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) { escape = false; continue; }
+    if (ch === '\\' && inString) { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return text.slice(start, i + 1);
+    }
+  }
+  throw new Error('Incomplete JSON in response');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { filename = '', base64, mimeType = '' } = req.body;
-
   if (!base64) return res.status(400).json({ error: 'No file data received' });
 
   try {
@@ -53,9 +73,10 @@ export default async function handler(req, res) {
     });
 
     const raw = response.content[0].text.trim();
-    console.log('[extract raw]', JSON.stringify(raw));
+    console.log('[extract raw]', raw.substring(0, 500));
 
-    return res.json(JSON.parse(raw));
+    const json = extractJson(raw);
+    return res.json(JSON.parse(json));
   } catch (err) {
     console.error('[extract error]', err.message);
     return res.status(500).json({ error: err.message });
