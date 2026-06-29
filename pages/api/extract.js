@@ -54,11 +54,17 @@ export default async function handler(req, res) {
 
     let text = response.content[0].text.trim();
 
+    // Strip markdown code fences if present
     if (text.startsWith('```')) {
       const lines = text.split('\n');
       const end = lines[lines.length - 1].trim() === '```' ? lines.length - 1 : lines.length;
       text = lines.slice(1, end).join('\n');
     }
+
+    // Extract just the JSON object even if there is extra text around it
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No JSON found in response');
+    text = jsonMatch[0];
 
     return res.json(JSON.parse(text));
   } catch (err) {
