@@ -1,84 +1,59 @@
-import Anthropic from '@anthropic-ai/sdk';
+﻿import Anthropic from "@anthropic-ai/sdk";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const PROMPT = `Extract the following fields from this vehicle registration document.
-Different U.S. states use different label names — use your best judgment.
-
-Examples of state label variations:
-- Pennsylvania: PLATE, TITLE, VIN, YR/MAKE, REG. GROSS WT, COMB. GROSS WT, EXPIRY
-- Maryland: PLATE NO, TITLE NO, VIN, YEAR, MAKE, GR VEHICLE WT, GR COMB WT, EXPIRES
-- Texas: LICENSE PLATE, TITLE NUMBER, VIN, YEAR, MAKE, GVWR, GCWR, EXPIRATION DATE
-
-Return ONLY a valid JSON object with these exact keys (use null if not found):
-
-{
-  "plate": null,
-  "year": null,
-  "make": null,
-  "vin": null,
-  "gross_vehicle_weight": null,
-  "gross_combined_weight": null,
-  "title_number": null,
-  "expiration_date": null,
-  "state": null
-}
-
-No text before or after the JSON. No markdown fences. No explanations.`;
-
 export const config = {
-  api: { bodyParser: { sizeLimit: '20mb' } },
+  api: { bodyParser: { sizeLimit: "20mb" } },
 };
 
-function extractJson(text) {
-  const start = text.indexOf('{');
-  if (start === -1) throw new Error('No JSON object found in response');
-  let depth = 0;
-  let inString = false;
-  let escape = false;
-  for (let i = start; i < text.length; i++) {
-    const ch = text[i];
-    if (escape) { escape = false; continue; }
-    if (ch === '\\' && inString) { escape = true; continue; }
-    if (ch === '"') { inString = !inString; continue; }
-    if (inString) continue;
-    if (ch === '{') depth++;
-    else if (ch === '}') {
-      depth--;
-      if (depth === 0) return text.slice(start, i + 1);
-    }
-  }
-  throw new Error('Incomplete JSON in response');
-}
+const TOOL = {
+  name: "extract_registration",
+  description: "Extract fields from a vehicle registration document",
+  input_schema: {
+    type: "object",
+    properties: {
+      plate:                 { type: ["string","null"], description: "License plate number" },
+      year:                  { type: ["string","null"], description: "4-digit model year" },
+      make:                  { type: ["string","null"], description: "Vehicle manufacturer e.g. FORD, FREIGHTLINER" },
+      vin:                   { type: ["string","null"], description: "17-character Vehicle Identification Number" },
+      gross_vehicle_weight:  { type: ["string","null"], description: "GVW / GVWR / GR VEHICLE WT / REG. GROSS WT" },
+      gross_combined_weight: { type: ["string","null"], description: "GCW / GCWR / GR COMB WT / COMB. GROSS WT" },
+      title_number:          { type: ["string","null"], description: "Title number or certificate number" },
+      expiration_date:       { type: ["string","null"], description: "Expiration date MM/DD/YYYY" },
+      state:                 { type: ["string","null"], description: "2-letter state abbreviation e.g. MD, PA, TX" },
+    },
+    required: ["plate","year","make","vin","gross_vehicle_weight","gross_combined_weight","title_number","expiration_date","state"],
+  },
+};
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { filename = '', base64, mimeType = '' } = req.body;
-  if (!base64) return res.status(400).json({ error: 'No file data received' });
+  const { filename = "", base64, mimeType = "" } = req.body;
+  if (!base64) return res.status(400).json({ error: "No file data received" });
 
   try {
-    const isPdf =
-      mimeType === 'application/pdf' ||
-      filename.toLowerCase().endsWith('.pdf');
+    const isPdf = mimeType === "application/pdf" || filename.toLowerCase().endsWith(".pdf");
 
     const fileBlock = isPdf
-      ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64 } }
-      : { type: 'image', source: { type: 'base64', media_type: mimeType || 'image/jpeg', data: base64 } };
+      ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } }
+      : { type: "image",    source: { type: "base64", media_type: mimeType || "image/jpeg", data: base64 } };
 
     const response = await client.messages.create({
-      model: 'claude-opus-4-5',
-      max_tokens: 800,
-      messages: [{ role: 'user', content: [fileBlock, { type: 'text', text: PROMPT }] }],
+      model: "claude-opus-4-5",
+      max_tokens: 1024,
+      tools: [TOOL],
+      tool_choice: { type: "tool", name: "extract_registration" },
+      messages: [{ role: "user", content: [fileBlock, { type: "text", text: "Extract all vehicle registration fields from this document. Use null for any field not found." }] }],
     });
 
-    const raw = response.content[0].text.trim();
-    console.log('[extract raw]', raw.substring(0, 500));
+    const toolBlock = response.content.find((b) => b.type === "tool_use");
+    if (!toolBlock) throw new Error("No tool_use block in response");
 
-    const json = extractJson(raw);
-    return res.json(JSON.parse(json));
+    console.log("[extract ok]", JSON.stringify(toolBlock.input));
+    return res.json(toolBlock.input);
   } catch (err) {
-    console.error('[extract error]', err.message);
+    console.error("[extract fail]", err.message);
     return res.status(500).json({ error: err.message });
   }
 }
