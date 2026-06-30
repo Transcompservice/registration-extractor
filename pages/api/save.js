@@ -1,9 +1,8 @@
 ﻿import { google } from 'googleapis';
 
 const HEADERS = [
-  'Filename', 'Unit #', 'Type', 'Plate', 'Year', 'Make', 'VIN',
-  'Gross Vehicle Weight', 'Gross Combined Weight',
-  'Title Number', 'Expiration Date', 'State',
+  'Filename', 'Type', 'State', 'Unit #', 'VIN', 'Year', 'Make',
+  'Plate', 'Expiration Date', 'Gross Vehicle Weight', 'Gross Combined Weight', 'Title Number',
 ];
 
 export default async function handler(req, res) {
@@ -32,17 +31,17 @@ export default async function handler(req, res) {
 
     const rows = records.map(r => [
       r.filename || '',
-      r.unit_number || '',
       r.type || '',
-      r.plate || '',
+      r.state || '',
+      r.unit_number || '',
+      r.vin || '',
       r.year || '',
       r.make || '',
-      r.vin || '',
+      r.plate || '',
+      r.expiration_date || '',
       r.gross_vehicle_weight || '',
       r.gross_combined_weight || '',
       r.title_number || '',
-      r.expiration_date || '',
-      r.state || '',
     ]);
 
     if (!hasHeaders) rows.unshift(HEADERS);
