@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 
 const COLS = [
   { key: 'unit_number', label: 'Unit #' },
+  { key: 'axles', label: 'Axles' },
   { key: 'type', label: 'Type' },
   { key: 'plate', label: 'Plate' },
   { key: 'year', label: 'Year' },
