@@ -13,6 +13,7 @@ const TOOL = {
     type: 'object',
     properties: {
       unit_number:           { type: ['string','null'], description: 'Unit number or fleet number printed on the document' },
+      axles:                 { type: ['string','null'], description: 'Number of axles on the vehicle (e.g. NO. AXLES, AXLES)' },
       type:                  { type: ['string','null'], description: "Registration type: return exactly 'Apportioned' if this is an apportioned/IRP registration, or 'Commercial' if it is a standard commercial registration" },
       plate:                 { type: ['string','null'], description: 'License plate number' },
       year:                  { type: ['string','null'], description: '4-digit model year' },
@@ -24,7 +25,7 @@ const TOOL = {
       expiration_date:       { type: ['string','null'], description: 'Expiration date MM/DD/YYYY' },
       state:                 { type: ['string','null'], description: '2-letter state abbreviation e.g. MD, PA, TX' },
     },
-    required: ['unit_number','type','plate','year','make','vin','gross_vehicle_weight','gross_combined_weight','title_number','expiration_date','state'],
+    required: ['unit_number','axles','type','plate','year','make','vin','gross_vehicle_weight','gross_combined_weight','title_number','expiration_date','state'],
   },
 };
 
