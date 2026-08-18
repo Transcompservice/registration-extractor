@@ -1,7 +1,7 @@
 ﻿import { google } from 'googleapis';
 
 const HEADERS = [
-  'Filename', 'Type', 'State', 'Unit #', 'VIN', 'Year', 'Make',
+  'Filename', 'Type', 'State', 'Unit #', 'Axles', 'VIN', 'Year', 'Make',
   'Plate', 'Expiration Date', 'Gross Vehicle Weight', 'Gross Combined Weight', 'Title Number',
 ];
 
@@ -24,7 +24,7 @@ export default async function handler(req, res) {
 
     const existing = await sheets.spreadsheets.values.get({
       spreadsheetId,
-      range: `${sheetName}!A1:L1`,
+      range: `${sheetName}!A1:M1`,
     }).catch(() => ({ data: { values: null } }));
 
     const hasHeaders = existing.data.values?.[0]?.length > 0;
@@ -34,6 +34,7 @@ export default async function handler(req, res) {
       r.type || '',
       r.state || '',
       r.unit_number || '',
+      r.axles || '',
       r.vin || '',
       r.year || '',
       r.make || '',
